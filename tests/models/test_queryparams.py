@@ -111,6 +111,17 @@ def test_queryparam_add():
     assert q == httpx.QueryParams("a=123&a=456")
 
 
+def test_queryparam_add_preserves_existing_values_and_original():
+    original = httpx.QueryParams("tag=python&tag=ml")
+
+    updated = original.add("tag", "agents")
+
+    assert updated.get_list("tag") == ["python", "ml", "agents"]
+    assert str(updated) == "tag=python&tag=ml&tag=agents"
+    assert original.get_list("tag") == ["python", "ml"]
+    assert str(original) == "tag=python&tag=ml"
+
+
 def test_queryparam_remove():
     q = httpx.QueryParams("a=123")
     q = q.remove("a")

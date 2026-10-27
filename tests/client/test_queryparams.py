@@ -33,3 +33,36 @@ def test_client_queryparams_echo():
 
     assert response.status_code == 200
     assert response.url == "http://example.org/echo_queryparams?first=str&second=dict"
+
+
+def test_client_get_preserves_repeated_queryparams_in_order():
+    requests = []
+
+    def inspect_request(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200)
+
+    with httpx.Client(transport=httpx.MockTransport(inspect_request)) as client:
+        response = client.get(
+            "http://example.org/", params=[("tag", "python"), ("tag", "ml")]
+        )
+
+    assert response.status_code == 200
+    assert requests[0].url.params.multi_items() == [
+        ("tag", "python"),
+        ("tag", "ml"),
+    ]
+
+
+def test_client_get_with_empty_queryparams_has_no_query():
+    requests = []
+
+    def inspect_request(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200)
+
+    with httpx.Client(transport=httpx.MockTransport(inspect_request)) as client:
+        response = client.get("http://example.org/", params=[])
+
+    assert response.status_code == 200
+    assert requests[0].url.query == b""

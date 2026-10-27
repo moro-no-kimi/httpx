@@ -213,6 +213,23 @@ def test_merge_relative_url_with_dotted_path():
     assert request.url == "https://www.example.com/some/testing/123"
 
 
+def test_ryan():
+    url = "https://www.example.com/"
+    headers = {"X-Team": "default"}
+
+    client = httpx.Client(
+        transport=httpx.MockTransport(echo_raw_headers), headers=headers, base_url=url
+    )
+
+    request_1 = client.build_request(
+        "GET", "/testing/123", headers={"X-Team": "request"}
+    )
+    request_2 = client.build_request("GET", "/testing/123")
+    assert request_1.headers["x-team"] == "request"
+    assert request_2.headers["x-team"] == "default"
+    assert client.headers["x-team"] == "default"
+
+
 def test_merge_relative_url_with_path_including_colon():
     client = httpx.Client(base_url="https://www.example.com/some/path")
     request = client.build_request("GET", "/testing:123")
